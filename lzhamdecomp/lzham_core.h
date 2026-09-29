@@ -251,6 +251,7 @@
 
 const bool c_lzham_big_endian_platform = !c_lzham_little_endian_platform;
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

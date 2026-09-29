@@ -2,6 +2,8 @@
 // LZHAM is in the Public Domain. Please see the Public Domain declaration at the end of include/lzham.h
 #pragma once
 
+#include <type_traits>
+
 namespace lzham
 {
    template<typename T>
@@ -67,11 +69,8 @@ namespace lzham
    // Defines type Q as bitwise copyable.
 #define LZHAM_DEFINE_BITWISE_COPYABLE(Q) template<> struct bitwise_copyable<Q> { enum { cFlag = true }; };
 
-#if defined(__APPLE__) || defined(__NetBSD__)
-   #define LZHAM_IS_POD(T) std::__is_pod<T>::__value
-#else
-   #define LZHAM_IS_POD(T) __is_pod(T)
-#endif
+// std::is_pod is deprecated in C++20, and libc++ removed the std::__is_pod internal.
+#define LZHAM_IS_POD(T) (std::is_trivial<T>::value && std::is_standard_layout<T>::value)
 
 #define LZHAM_IS_SCALAR_TYPE(T) (scalar_type<T>::cFlag)
 

@@ -14,7 +14,7 @@ void lzham_fail(const char* pExp, const char* pFile, unsigned line);
    #define LZHAM_BREAKPOINT DebuggerBreak();
    #define LZHAM_BUILTIN_EXPECT(c, v) c
 #elif defined(__GNUC__)
-   #define LZHAM_BREAKPOINT asm("int $3");
+   #define LZHAM_BREAKPOINT __builtin_trap();
    #define LZHAM_BUILTIN_EXPECT(c, v) __builtin_expect(c, v)
 #else
    #define LZHAM_BREAKPOINT
@@ -66,17 +66,14 @@ LZHAM_FORCE_INLINE void lzham_yield_processor()
 
 #if LZHAM_PLATFORM_X360
    #define LZHAM_MEMORY_EXPORT_BARRIER MemoryBarrier();
-#else
-   // Barriers shouldn't be necessary on x86/x64.
-   // TODO: Should use __sync_synchronize() on other platforms that support GCC.
-   #define LZHAM_MEMORY_EXPORT_BARRIER
-#endif
-
-#if LZHAM_PLATFORM_X360
    #define LZHAM_MEMORY_IMPORT_BARRIER MemoryBarrier();
+#elif defined(__GNUC__) && !defined(__i386__) && !defined(__x86_64__)
+   // Weakly ordered CPUs (e.g. ARM) need real barriers between threads.
+   #define LZHAM_MEMORY_EXPORT_BARRIER __sync_synchronize();
+   #define LZHAM_MEMORY_IMPORT_BARRIER __sync_synchronize();
 #else
    // Barriers shouldn't be necessary on x86/x64.
-   // TODO: Should use __sync_synchronize() on other platforms that support GCC.
+   #define LZHAM_MEMORY_EXPORT_BARRIER
    #define LZHAM_MEMORY_IMPORT_BARRIER
 #endif
 

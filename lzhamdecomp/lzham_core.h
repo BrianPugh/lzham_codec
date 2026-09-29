@@ -129,18 +129,23 @@
       #define LZHAM_NOTE_UNUSED(x) (void)x
 
    #elif (TARGET_OS_MAC == 1)
-      #define LZHAM_PLATFORM_PC 1
+      #if defined(__i386__) || defined(__x86_64__)
+         #define LZHAM_PLATFORM_PC 1
+      #else
+         #define LZHAM_PLATFORM_PC 0
+      #endif
 
       #if defined(_WIN64) || defined(__MINGW64__) || defined(_LP64) || defined(__LP64__)
-         #define LZHAM_PLATFORM_PC_X64 1
+         #define LZHAM_PLATFORM_PC_X64 LZHAM_PLATFORM_PC
          #define LZHAM_64BIT_POINTERS 1
          #define LZHAM_CPU_HAS_64BIT_REGISTERS 1
       #else
-         #define LZHAM_PLATFORM_PC_X86 1
+         #define LZHAM_PLATFORM_PC_X86 LZHAM_PLATFORM_PC
          #define LZHAM_64BIT_POINTERS 0
          #define LZHAM_CPU_HAS_64BIT_REGISTERS 0
       #endif
 
+      // x86 and arm64 both handle unaligned integer loads.
       #define LZHAM_USE_UNALIGNED_INT_LOADS 1
 
       #if __BIG_ENDIAN__
@@ -165,22 +170,30 @@
       #error TODO: Unknown Apple target
    #endif
 
-#elif defined(__linux__) && (defined(__i386__) || defined(__x86_64__)) && !defined(LZHAM_ANSI_CPLUSPLUS) 
-   // --- Generic GCC/clang path for x86/x64, clang or GCC, Linux, OSX, FreeBSD or NetBSD, pthreads for threading, GCC built-ins for atomic ops.
-   #define LZHAM_PLATFORM_PC 1
+#elif defined(__linux__) && !defined(LZHAM_ANSI_CPLUSPLUS)
+   // --- Generic GCC/clang path for Linux on any architecture, pthreads for threading, GCC built-ins for atomic ops.
+   #if defined(__i386__) || defined(__x86_64__)
+      #define LZHAM_PLATFORM_PC 1
+   #else
+      #define LZHAM_PLATFORM_PC 0
+   #endif
 
    #if defined(_LP64) || defined(__LP64__) || defined(__x86_64__)
       // 64-bit build assumes pointers are always 64-bit
-      #define LZHAM_PLATFORM_PC_X64 1
+      #define LZHAM_PLATFORM_PC_X64 LZHAM_PLATFORM_PC
       #define LZHAM_64BIT_POINTERS 1
       #define LZHAM_CPU_HAS_64BIT_REGISTERS 1
    #else
-      #define LZHAM_PLATFORM_PC_X86 1
+      #define LZHAM_PLATFORM_PC_X86 LZHAM_PLATFORM_PC
       #define LZHAM_64BIT_POINTERS 0
       #define LZHAM_CPU_HAS_64BIT_REGISTERS 0
    #endif
 
-   #define LZHAM_USE_UNALIGNED_INT_LOADS 1
+   #if defined(__i386__) || defined(__x86_64__) || defined(__aarch64__)
+      #define LZHAM_USE_UNALIGNED_INT_LOADS 1
+   #else
+      #define LZHAM_USE_UNALIGNED_INT_LOADS 0
+   #endif
 
    #if __BIG_ENDIAN__
       #define LZHAM_BIG_ENDIAN_CPU 1
